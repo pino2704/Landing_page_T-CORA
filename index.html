@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>T-CORA v3.5 | Trợ lý AI rà soát chương trình đào tạo theo OBE</title>
+  <meta name="description" content="Khám phá T-CORA, trợ lý AI hỗ trợ rà soát PEO, PLO, CLO, liên kết I-R-M và đề xuất cải tiến chương trình đào tạo dựa trên căn cứ chuyên môn.">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#12365A">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="vi_VN">
+  <meta property="og:title" content="T-CORA v3.5 | Trợ lý AI rà soát chương trình đào tạo theo OBE">
+  <meta property="og:description" content="Từ ma trận phức tạp đến khuyến nghị có căn cứ. Kiểm tra có cấu trúc, đối chiếu nguồn khi phù hợp, con người quyết định.">
+  <link rel="icon" href="data:,">
+  <style>
+    /* OD-LAYOUT-PRIMITIVES v1 — structure only: display, flex/grid, overflow, wrapping, ratio, geometry.
+       Put this @layer first; product CSS outside the layer always wins. */
+    @layer od-layout {
+      :where(.od-stack,.od-row,.od-row-top,.od-cluster,.od-grid,.od-field,.od-stat,.od-cell,.od-tile) > :where(*) { min-width: 0; }
+      /* containers */
+      .od-stack { display: flex; flex-direction: column; gap: var(--od-gap, 8px); }
+      .od-row { display: flex; align-items: center; gap: var(--od-gap, 8px); }
+      .od-row-top { display: flex; align-items: flex-start; gap: var(--od-gap, 8px); }
+      .od-cluster { display: flex; flex-wrap: wrap; align-items: center; gap: var(--od-gap, 8px); }
+      .od-fill { flex: 1 1 0; min-width: 0; }
+      .od-fixed { flex: none; }
+      .od-grid { display: grid; gap: var(--od-gap, 12px); grid-template-columns: repeat(var(--od-cols, 3), minmax(0, 1fr)); }
+      /* Each piece of stacked information occupies its own line. */
+      .od-stat, .od-field, .od-cell { display: grid; gap: var(--od-gap, 2px); }
+      :where(.od-stat,.od-field,.od-cell) > :where(*) { display: block; }
+      .od-tile { display: grid; grid-template-rows: auto 1fr; }
+      :where(.od-tile) > :where(*) { display: block; }
+      /* Content images keep their full frame unless decorative cropping is explicit. */
+      .od-media { display: block; width: 100%; height: auto; aspect-ratio: var(--od-ratio, auto); }
+      .od-media-cover { object-fit: cover; }
+      .od-icon { display: inline-block; inline-size: var(--od-icon-size, 1em); block-size: var(--od-icon-size, 1em); flex: none; }
+      /* Truncation utilities apply to data text only. */
+      .od-truncate { display: block; max-width: 100%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+      .od-clamp-2, .od-clamp-3 { display: -webkit-box; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; }
+      .od-clamp-2 { -webkit-line-clamp: 2; }
+      .od-clamp-3 { -webkit-line-clamp: 3; }
+      .od-lines-2 { min-height: calc(2 * 1.4em); }
+      .od-nowrap { white-space: nowrap; }
+      .od-keep { word-break: keep-all; overflow-wrap: anywhere; }
+      .od-screen { display: grid; grid-template-rows: auto minmax(0, 1fr) auto; height: 100%; }
+      .od-scroll { overflow-y: auto; overscroll-behavior: contain; min-height: 0; }
+      .od-rail { display: flex; gap: var(--od-gap, 8px); overflow-x: auto; scroll-snap-type: x proximity; scrollbar-width: none; padding-inline: var(--od-rail-pad, 16px); scroll-padding-inline: var(--od-rail-pad, 16px); }
+      .od-rail::-webkit-scrollbar { display: none; }
+      :where(.od-rail) > :where(*) { flex: none; scroll-snap-align: start; }
+      :where(.od-rail) > :where(:last-child) { margin-inline-end: var(--od-rail-pad, 16px); }
+      .od-spacer { flex: none; visibility: hidden; pointer-events: none; }
+      .od-touch { min-width: 44px; min-height: 44px; }
+    }
+    /* /OD-LAYOUT-PRIMITIVES v1 */
+  </style>
+  <link rel="stylesheet" href="styles.css">
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <svg xmlns="http://www.w3.org/2000/svg" width="0" height="0" style="position:absolute" aria-hidden="true">
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M4 12h16m-6-6 6 6-6 6"/></symbol>
+    <symbol id="i-back" viewBox="0 0 24 24"><path d="M20 12H4m6-6-6 6 6 6"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><path d="m6 6 12 12M6 18 18 6"/></symbol>
+    <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+    <symbol id="i-expand" viewBox="0 0 24 24"><path d="M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5M3 3l6 6m6 6 6 6M21 3l-6 6M9 15l-6 6"/></symbol>
+    <symbol id="i-file" viewBox="0 0 24 24"><path d="M14 3H5v18h14V8zM14 3v5h5M8 12h8M8 16h6"/></symbol>
+    <symbol id="i-links" viewBox="0 0 24 24"><rect x="3" y="3" width="6" height="6" rx="1"/><rect x="15" y="15" width="6" height="6" rx="1"/><path d="M9 6h6a3 3 0 0 1 3 3v6M6 9v6a3 3 0 0 0 3 3h6"/></symbol>
+    <symbol id="i-book" viewBox="0 0 24 24"><path d="M12 5C8 2 4 3 3 4v15c3-2 6-1 9 1 3-2 6-3 9-1V4c-1-1-5-2-9 1zm0 0v15"/></symbol>
+    <symbol id="i-person" viewBox="0 0 24 24"><circle cx="12" cy="7" r="4"/><path d="M4 21v-3a8 8 0 0 1 16 0v3"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></symbol>
+    <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18M15 3v18M3 9h18M3 15h18"/></symbol>
+    <symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><path d="M12 9v6m-3-3h6"/></symbol>
+    <symbol id="i-building" viewBox="0 0 24 24"><path d="m3 8 9-5 9 5H3zm2 3v7m7-7v7m7-7v7M3 21h18"/></symbol>
+    <symbol id="i-scale" viewBox="0 0 24 24"><path d="M12 3v18M7 21h10M4 7h16M4 7l-3 7h6zm16 0-3 7h6z"/></symbol>
+  </svg>
+  <a class="skip-link" href="#main-content">Chuyển đến nội dung chính</a>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="wordmark" href="#TC-S01" aria-label="T-CORA v3.5 — Tổng quan"><span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>T-CORA<span class="brand-version">v3.5</span></a>
+      <button class="menu-toggle" id="menu-toggle" aria-expanded="false" aria-controls="main-nav"><svg class="od-icon" aria-hidden="true"><use href="#i-menu"/></svg><span id="menu-label">Menu</span></button>
+      <nav class="nav-links" id="main-nav" aria-label="Điều hướng chính">
+        <a href="#TC-S01" aria-current="location">Tổng quan</a>
+        <a href="#TC-S03">Tình huống rà soát</a>
+        <a href="#TC-S04">Tính năng</a>
+        <a href="#TC-S05">Cách hoạt động</a>
+        <a href="#TC-S06">Minh chứng</a>
+        <a href="#TC-S08">FAQ</a>
+        <a class="nav-demo" href="#TC-S09">Demo <svg class="od-icon" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+      </nav>
+    </div>
+  </header>
+  <div class="preview-note">PREVIEW NỘI BỘ · Ảnh / số liệu chờ duyệt công bố</div>
+  <main id="main-content" tabindex="-1">
+    <section class="hero" id="TC-S01" aria-labelledby="hero-title" tabindex="-1">
+<div class="container hero-grid"><div class="hero-copy"><span class="eyebrow">Trợ lý AI rà soát CTĐT</span><p class="product-name">T-CORA v3.5</p><h1 id="hero-title">Rà soát OBE.<br><em>Khuyến nghị <span class="od-nowrap">có căn cứ.</span></em></h1><p class="lead">Từ dữ liệu chương trình đến đề xuất để chuyên gia thẩm định.</p><div class="hero-actions"><a class="button" href="#TC-S03">Khám phá T-CORA <svg class="od-icon" aria-hidden="true"><use href="#i-arrow"/></svg></a><div class="hero-demo"><button class="button secondary" disabled aria-describedby="hero-contact-note">Đặt lịch demo</button><span class="small muted" id="hero-contact-note">Chờ kênh liên hệ</span></div></div><span class="badge"><svg class="od-icon" aria-hidden="true"><use href="#i-grid"/></svg>7 mô-đun chuyên môn</span></div><figure class="hero-visual">
+<div class="window">
+<div class="window-bar"><span class="window-label"><span aria-hidden="true" class="window-dots"><i></i><i></i><i></i></span>T-CORA / Kết quả rà soát</span><span class="window-status">Ảnh hệ thống thật</span></div>
+<button aria-label="Phóng to ảnh khuyến nghị SMART và OBE" class="screenshot-button" data-caption="Vùng cắt từ TC_WEB_03_recommendation.png, giữ nguyên nội dung PLO1–PLO3. Ảnh chỉ dùng cho preview nội bộ, chờ duyệt quyền công bố." data-image="assets/recommendation.webp" data-title="Khuyến nghị SMART / OBE">
+<img alt="Bảng kết quả T-CORA: vấn đề của PLO1, PLO2, PLO3 đặt cạnh gợi ý cải thiện cách diễn đạt theo SMART và OBE." class="od-media" fetchpriority="high" height="512" src="assets/recommendation.webp" width="801"/>
+<span class="screenshot-hint"><svg aria-hidden="true" class="od-icon"><use href="#i-expand"></use></svg> Phóng to ảnh</span>
+</button>
+</div>
+<figcaption class="hero-caption">PLO: vấn đề → gợi ý điều chỉnh</figcaption>
+</figure></div>
+    </section>
+
+    <section class="section" id="TC-S02" aria-labelledby="problem-title" tabindex="-1">
+<div class="container"><div class="section-heading"><span class="eyebrow">Bài toán thực tế</span><h2 id="problem-title">Ba bài toán. Một trợ lý.</h2></div><div class="problems"><article class="problem"><div class="icon-box"><svg class="od-icon" aria-hidden="true"><use href="#i-file"/></svg></div><h3>Dữ liệu phân tán</h3><p class="diagram-label">Word · Excel · PDF</p><div class="problem-solution"><svg class="od-icon" aria-hidden="true"><use href="#i-arrow"/></svg><strong>Chuẩn hóa đầu vào</strong></div></article><article class="problem"><div class="icon-box"><svg class="od-icon" aria-hidden="true"><use href="#i-links"/></svg></div><h3>Liên kết phức tạp</h3><p class="diagram-label">CLO ↔ PLO · I–R–M</p><div class="problem-solution"><svg class="od-icon" aria-hidden="true"><use href="#i-arrow"/></svg><strong>Kiểm tra tính nhất quán</strong></div></article><article class="problem"><div class="icon-box"><svg class="od-icon" aria-hidden="true"><use href="#i-book"/></svg></div><h3>Nhiều nguồn đối chiếu</h3><p class="diagram-label">Nội bộ · OBE · Pháp quy</p><div class="problem-solution"><svg class="od-icon" aria-hidden="true"><use href="#i-arrow"/></svg><strong>Đề xuất có căn cứ</strong></div></article></div><p class="human-note"><svg class="od-icon" aria-hidden="true"><use href="#i-person"/></svg><span>AI hỗ trợ. Chuyên gia quyết định.</span></p></div>
+    </section>
+
+    <section class="section dark" id="TC-S03" aria-labelledby="demo-title" tabindex="-1">
+<div class="container"><div class="demo-heading"><div class="section-heading"><span class="eyebrow">Sản phẩm thật</span><h2 id="demo-title">Xem T-CORA làm việc</h2></div><p class="demo-disclaimer">Ảnh minh họa độc lập · Chưa xác minh cùng phiên.</p></div><div class="step-tabs" role="tablist" aria-label="Ba bước rà soát OBE"><button class="step-tab" id="step-tab-1" role="tab" aria-selected="true" aria-controls="walk-panel" tabindex="0"><span class="step-number">01</span><span>Tài liệu</span></button><button class="step-tab" id="step-tab-2" role="tab" aria-selected="false" aria-controls="walk-panel" tabindex="-1"><span class="step-number">02</span><span>Phân tích</span></button><button class="step-tab" id="step-tab-3" role="tab" aria-selected="false" aria-controls="walk-panel" tabindex="-1"><span class="step-number">03</span><span>Khuyến nghị</span></button></div><div class="walk-panel" id="walk-panel" role="tabpanel" aria-labelledby="step-tab-1" tabindex="0"><div class="walk-copy"><span class="step-kicker" id="step-kicker">MÀN HÌNH 01</span><h3 id="step-title">Cung cấp tài liệu</h3><p id="step-description">Tệp Word sẵn sàng gửi để rà soát PLO.</p><div class="step-controls"><button aria-label="Bước trước" disabled="" id="step-previous"><svg aria-hidden="true" class="od-icon"><use href="#i-back"></use></svg></button><button aria-label="Bước tiếp theo" id="step-next"><svg aria-hidden="true" class="od-icon"><use href="#i-arrow"></use></svg></button><span aria-atomic="true" aria-live="polite" class="step-count" id="step-count">01 / 03</span></div><details class="compact-detail evidence-note"><summary>Đọc chi tiết ảnh <svg class="od-icon" aria-hidden="true"><use href="#i-plus"/></svg></summary><p id="step-evidence">Màn hình thể hiện một tệp Word ở trạng thái “Sẵn sàng gửi” cùng yêu cầu phân tích PLO. Ảnh này chưa chứng minh việc trích xuất đã hoàn tất.</p><p id="step-caption">Vùng cắt từ TC_WEB_01_input_prompt.png. Minh họa thao tác cung cấp tài liệu, chưa xác minh cùng phiên với các màn hình sau.</p></details></div><figure><div class="window demo-window">
+<div class="window-bar"><span class="window-label"><span aria-hidden="true" class="window-dots"><i></i><i></i><i></i></span>T-CORA / Minh họa chức năng</span><span class="window-status">Screenshot thật</span></div>
+<button aria-label="Phóng to ảnh: Cung cấp tài liệu" class="screenshot-button" data-caption="Vùng cắt từ TC_WEB_01_input_prompt.png. Minh họa thao tác cung cấp tài liệu, chưa xác minh cùng phiên với các màn hình sau." data-image="assets/input.webp" data-title="Cung cấp tài liệu" id="step-zoom">
+<img alt="Ảnh T-CORA thật: tệp Word đính kèm ở trạng thái Sẵn sàng gửi và yêu cầu phân tích các PLO trong file CTĐT." class="od-media" height="247" id="step-image" loading="lazy" src="assets/input.webp" width="1009"/>
+<span class="screenshot-hint"><svg aria-hidden="true" class="od-icon"><use href="#i-expand"></use></svg>Phóng to ảnh</span>
+</button>
+</div></figure></div></div>
+    </section>
+
+    <section class="section" id="TC-S04" aria-labelledby="features-title" tabindex="-1">
+<div class="container"><div class="section-heading"><span class="eyebrow">Phạm vi chuyên môn</span><h2 id="features-title">3 trụ cột. 7 mô-đun.</h2></div><div class="pillar-grid"><article class="pillar"><div class="pillar-head"><div class="icon-box"><svg aria-hidden="true" class="od-icon"><use href="#i-target"></use></svg></div><span class="pillar-index">TC01–TC03</span></div><h3>Chuẩn hóa đầu ra</h3><p>PEO · PLO · PI · Bloom</p><details><summary>Xem mô-đun <svg aria-hidden="true" class="od-icon expand-icon"><use href="#i-plus"></use></svg></summary><ul class="modules"><li><strong>TC01 · Mục tiêu đào tạo</strong>Rà soát mục tiêu đào tạo PEO và liên kết với PLO.</li><li><strong>TC02 · Đối sánh PLO</strong>Đối sánh PLO với yêu cầu bên ngoài và các bên liên quan khi có dữ liệu.</li><li><strong>TC03 · Chuẩn đầu ra đo lường được</strong>Rà soát Bloom, khả năng đo lường, cách diễn đạt PLO và chỉ báo PI.</li></ul></details></article><article class="pillar"><div class="pillar-head"><div class="icon-box"><svg aria-hidden="true" class="od-icon"><use href="#i-links"></use></svg></div><span class="pillar-index">TC04–TC05</span></div><h3>Kiểm tra liên kết</h3><p>CLO–PLO · I–R–M</p><details><summary>Xem mô-đun <svg aria-hidden="true" class="od-icon expand-icon"><use href="#i-plus"></use></svg></summary><ul class="modules"><li><strong>TC04 · Tiến trình năng lực</strong>Rà soát mức đóng góp I–R–M, mức độ bao phủ và tiến trình năng lực.</li><li><strong>TC05 · Liên kết CLO–PLO</strong>Kiểm tra tham chiếu, mức độ bao phủ và ý nghĩa liên kết CLO–PLO.</li></ul></details></article><article class="pillar"><div class="pillar-head"><div class="icon-box"><svg aria-hidden="true" class="od-icon"><use href="#i-book"></use></svg></div><span class="pillar-index">TC06–TC07</span></div><h3>Hỗ trợ cải tiến</h3><p>Dạy học · Đánh giá · OBE</p><details><summary>Xem mô-đun <svg aria-hidden="true" class="od-icon expand-icon"><use href="#i-plus"></use></svg></summary><ul class="modules"><li><strong>TC06 · Dạy học và đánh giá</strong>Rà soát CLO, hoạt động dạy học và kiểm tra đánh giá.</li><li><strong>TC07 · Tổng thể chương trình</strong>Rà soát tổng thể chương trình đào tạo theo OBE, tổng hợp khoảng trống cần bổ sung.</li></ul></details></article></div><div class="export-strip"><div><span class="eyebrow">Xuất bảng kết quả</span><h3>Word / Excel</h3><p>Theo nội dung được hỗ trợ.</p></div><button aria-label="Phóng to ảnh menu xuất bảng Word và Excel" class="screenshot-button" data-caption="Vùng cắt từ TC_WEB_05_export.png. Đã loại khỏi bản cắt toàn bộ lịch sử tải xuống, thanh trình duyệt và sidebar. Không sửa nội dung bảng hoặc menu." data-image="assets/export.webp" data-title="Menu xuất bảng kết quả"><img alt="Menu Xuất bảng trên T-CORA có hai lựa chọn Word (.docx) và Excel (.xlsx), cạnh bảng khuyến nghị PLO." class="od-media" height="258" loading="lazy" src="assets/export.webp" width="812"/><span class="screenshot-hint"><svg aria-hidden="true" class="od-icon"><use href="#i-expand"></use></svg>Phóng to ảnh</span></button></div></div>
+    </section>
+
+    <section class="section wash" id="TC-S05" aria-labelledby="mechanism-title" tabindex="-1">
+<div class="container"><div class="section-heading"><span class="eyebrow">Cách hoạt động</span><h2 id="mechanism-title">Dữ liệu → căn cứ → quyết định</h2></div><ol class="pipeline"><li><div class="flow-node"><svg class="od-icon" aria-hidden="true"><use href="#i-file"/></svg></div><span class="pipeline-number">01</span><h3>Tài liệu</h3><p>Word / Excel / PDF</p></li><li><div class="flow-node"><svg class="od-icon" aria-hidden="true"><use href="#i-grid"/></svg></div><span class="pipeline-number">02</span><h3>Chuẩn hóa</h3><p>Dữ liệu có cấu trúc</p></li><li><div class="flow-node"><svg class="od-icon" aria-hidden="true"><use href="#i-links"/></svg></div><span class="pipeline-number">03</span><h3>Kiểm tra</h3><p>Quy tắc / liên kết</p></li><li><div class="flow-node"><svg class="od-icon" aria-hidden="true"><use href="#i-book"/></svg></div><span class="pipeline-number">04</span><h3>AI + tri thức</h3><p>Nguồn phù hợp</p></li><li><div class="flow-node"><svg class="od-icon" aria-hidden="true"><use href="#i-person"/></svg></div><span class="pipeline-number">05</span><h3>Thẩm định</h3><p>Con người quyết định</p></li></ol><div class="knowledge"><h3>3 kho tri thức</h3><div class="knowledge-list"><div class="knowledge-item"><svg class="od-icon" aria-hidden="true"><use href="#i-building"/></svg><strong>Hướng dẫn nội bộ</strong></div><div class="knowledge-item"><svg class="od-icon" aria-hidden="true"><use href="#i-book"/></svg><strong>Nền tảng OBE</strong></div><div class="knowledge-item"><svg class="od-icon" aria-hidden="true"><use href="#i-scale"/></svg><strong>Pháp quy</strong></div></div></div><details class="compact-detail"><summary>Phạm vi và nguồn tham khảo <svg class="od-icon" aria-hidden="true"><use href="#i-plus"/></svg></summary><p>Sơ đồ khái quát; đường xử lý phụ thuộc yêu cầu và dữ liệu. Nguồn chỉ xuất hiện khi truy xuất phù hợp, không bảo đảm mọi phản hồi có trích dẫn đầy đủ. Đề xuất cần được người phụ trách chuyên môn thẩm định.</p><p>Ảnh nguồn tham khảo nội bộ đang chờ duyệt công bố.</p></details></div>
+    </section>
+
+    <section class="section" id="TC-S06" aria-labelledby="proof-title" tabindex="-1">
+<div class="container"><div class="proof-heading"><div class="section-heading"><span class="eyebrow">Ứng dụng tại TDTU</span><h2 id="proof-title">Những con số đã ghi nhận</h2></div><p class="proof-label">01/10/2026 · Chờ duyệt công bố</p></div><div class="metrics">
+<div class="metric od-stat"><span class="metric-value od-nowrap">40</span><span class="metric-label">Người dùng duy nhất</span></div>
+<div class="metric od-stat"><span class="metric-value od-nowrap">28</span><span class="metric-label">Chương trình đào tạo có sử dụng</span></div>
+<div class="metric od-stat"><span class="metric-value od-nowrap">28</span><span class="metric-label">Tác vụ rà soát hoàn thành</span></div>
+<div class="metric od-stat"><span class="metric-value od-nowrap">254</span><span class="metric-label">Khuyến nghị được áp dụng</span></div>
+</div><details class="compact-detail proof-source"><summary>Nguồn và cách hiểu số liệu <svg class="od-icon" aria-hidden="true"><use href="#i-plus"/></svg></summary><p>Theo hồ sơ dự án T-CORA đến 01/10/2026. Người dùng đã loại tài khoản phát triển/kiểm thử; 254 khuyến nghị áp dụng vào công việc chuyên môn do nhóm dự án xác nhận.</p><p>40 người dùng không phải khách hàng trả phí; 28 CTĐT không phải số trường. Số khuyến nghị không thể hiện độ chính xác AI, số lỗi độc lập hay tác động đến điểm kiểm định. Không suy ra tỷ lệ thành công hoặc mức tiết kiệm thời gian.</p></details></div>
+    </section>
+
+    <section class="section wash" id="TC-S07" aria-labelledby="transfer-title" tabindex="-1">
+<div class="container"><div class="section-heading"><span class="eyebrow">Lộ trình đề xuất</span><h2 id="transfer-title">Bắt đầu từ cơ sở của bạn</h2></div><ol class="timeline"><li><div class="timeline-track"><span class="timeline-number">01</span></div><div><h3>Khảo sát</h3><p>Nhu cầu / dữ liệu</p></div></li><li><div class="timeline-track"><span class="timeline-number">02</span></div><div><h3>Cấu hình</h3><p>Quy định / tri thức</p></div></li><li><div class="timeline-track"><span class="timeline-number">03</span></div><div><h3>Kiểm thử</h3><p>Ca thực tế</p></div></li><li><div class="timeline-track"><span class="timeline-number">04</span></div><div><h3>Hướng dẫn</h3><p>Sử dụng / đánh giá</p></div></li></ol><p class="transfer-note">Cần khảo sát và kiểm chứng tại đơn vị tiếp nhận.</p><details class="compact-detail"><summary>Điều kiện triển khai <svg class="od-icon" aria-hidden="true"><use href="#i-plus"/></svg></summary><p>Đây là định hướng, chưa phải gói dịch vụ thương mại đã được duyệt. Khả năng áp dụng phụ thuộc dữ liệu, quy định và hạ tầng thực tế.</p><p>Khảo sát mẫu dữ liệu và tình huống ưu tiên; chuẩn hóa, cấu hình; kiểm tra trích xuất, đối chiếu nguồn và kết quả cùng nhóm chuyên môn; hướng dẫn sử dụng và phân công người thẩm định.</p></details></div>
+    </section>
+
+    <section class="section" id="TC-S08" aria-labelledby="faq-title" tabindex="-1">
+<div class="container faq-layout"><div class="section-heading"><span class="eyebrow">FAQ</span><h2 id="faq-title">Bạn cần biết</h2></div><div class="faq-list">
+<details><summary><span>Thay thế chuyên gia?</span><svg aria-hidden="true" class="od-icon expand-icon"><use href="#i-plus"></use></svg></summary><p>Không. T-CORA hỗ trợ phân tích và đề xuất. Quyết định điều chỉnh CTĐT thuộc đơn vị và người phụ trách có thẩm quyền.</p></details>
+<details><summary><span>Nhận tài liệu nào?</span><svg aria-hidden="true" class="od-icon expand-icon"><use href="#i-plus"></use></svg></summary><p>Theo mô tả v3.5, hệ thống hỗ trợ Word, Excel, PDF, văn bản và nhận dạng chữ từ ảnh hoặc bản quét. Giới hạn thực tế phụ thuộc cấu hình đang vận hành; thông số kỹ thuật được xác nhận khi triển khai.</p></details>
+<details><summary><span>Kết quả có nguồn?</span><svg aria-hidden="true" class="od-icon expand-icon"><use href="#i-plus"></use></svg></summary><p>T-CORA có ba kho tri thức và hỗ trợ xem nguồn tham khảo khi có kết quả truy xuất phù hợp. Không bảo đảm mọi phản hồi đều có trích dẫn đầy đủ.</p></details>
+<details><summary><span>Dùng tại trường khác?</span><svg aria-hidden="true" class="od-icon expand-icon"><use href="#i-plus"></use></svg></summary><p>Hệ thống có định hướng tách logic rà soát khỏi tri thức đặc thù của cơ sở giáo dục. Việc điều chỉnh cần khảo sát, cấu hình và kiểm thử trên dữ liệu, quy định và hạ tầng của đơn vị tiếp nhận.</p></details>
+<details><summary><span>Dữ liệu và bảo mật?</span><svg aria-hidden="true" class="od-icon expand-icon"><use href="#i-plus"></use></svg></summary><p>Hệ thống có các biện pháp kiểm soát truy cập và nội dung theo cấu hình được mô tả. Phạm vi lưu trữ, xử lý, phân quyền và bảo mật khi triển khai tại đơn vị mới cần được thỏa thuận và kiểm chứng. Không khẳng định đã có chứng nhận bảo mật hoặc kiểm toán độc lập.</p></details>
+</div></div>
+    </section>
+
+    <section class="final-section" id="TC-S09" aria-labelledby="cta-title" tabindex="-1">
+<div class="container"><div class="final-cta dark"><div><span class="eyebrow">Khám phá cùng dữ liệu mẫu</span><h2 id="cta-title">Xem T-CORA trong thực tế.</h2></div><div class="final-actions"><button class="button" disabled aria-describedby="contact-status">Đặt lịch demo</button><p class="contact-status" id="contact-status">Chờ kênh tiếp nhận chính thức.</p><!-- TODO: Approved T-CORA contact channel --><a class="text-link" href="#TC-S03">Xem lại minh họa <svg class="od-icon" aria-hidden="true"><use href="#i-arrow"/></svg></a></div></div><p class="closing-note">Kết quả T-CORA không thay thế thẩm định chuyên môn.</p></div>
+    </section>
+  </main>
+  <footer class="site-footer"><div class="container footer-compact"><a class="wordmark" href="#TC-S01"><span aria-hidden="true" class="brand-mark"><i></i><i></i><i></i><i></i></span>T-CORA<span class="brand-version">v3.5</span></a><p>Trợ lý AI rà soát CTĐT theo OBE.</p><details class="compact-detail"><summary>Thông tin sản phẩm <svg class="od-icon" aria-hidden="true"><use href="#i-plus"/></svg></summary><p>Nội dung theo đặc tả T-CORA v3.5 và hồ sơ dự án đến 01/10/2026. Chủ thể thương mại, thương hiệu và kênh liên hệ chờ xác nhận. Hình ảnh, số liệu chỉ dùng cho preview nội bộ.</p></details></div></footer>
+  <dialog class="lightbox" id="lightbox" aria-labelledby="lightbox-title" aria-describedby="lightbox-caption">
+    <figure class="lightbox-inner"><div class="lightbox-head"><h2 id="lightbox-title">Ảnh chụp T-CORA</h2><button class="lightbox-close" id="lightbox-close" autofocus><svg class="od-icon" aria-hidden="true"><use href="#i-close"/></svg>Đóng</button></div><div class="lightbox-image-wrap" tabindex="0" role="region" aria-label="Ảnh phóng to; cuộn ngang trên điện thoại để đọc đầy đủ"><img id="lightbox-image" src="assets/recommendation.webp" width="801" height="512" loading="lazy" alt="Ảnh chụp kết quả T-CORA"></div><figcaption id="lightbox-caption">Ảnh thật, chờ xác nhận quyền công bố.</figcaption></figure>
+  </dialog>
+</body>
+</html>
